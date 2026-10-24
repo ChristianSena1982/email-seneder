@@ -35,13 +35,12 @@ app.post('/api/send-lead-email', async (req, res) => {
 
         console.log(`Invio email a ${recipientEmail} | Setter: "${displayName}"`);
 
-        // URL pubblici delle due immagini caricate nella cartella public/images/
-        const img1Url = "https://email-seneder.onrender.com/images/art1.jpg";
-        const img2Url = "https://email-seneder.onrender.com/images/art2.jpg";
+        // URL diretti e stabili da GitHub Raw per art1.jpg e art2.jpg
+        const img1Url = "https://raw.githubusercontent.com/ChristianSena1982/email-seneder/main/public/art1.jpg";
+        const img2Url = "https://raw.githubusercontent.com/ChristianSena1982/email-seneder/main/public/art2.jpg";
         
         const imgStyle = "max-width: 100%; height: auto; display: block; margin: 15px auto; border-radius: 6px;";
         
-        // Genera l'HTML per le immagini in modo dinamico
         const imagesHtml = `
             <div style="margin-top: 25px; text-align: center;">
                 <img src="${img1Url}" alt="Art 1" style="${imgStyle}" />
