@@ -10,24 +10,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/api/send-lead-email', async (req, res) => {
     try {
-        console.log("Dati ricevuti dal form:", req.body);
+        console.log("BODY RICEVUTO DAL FORM:", req.body); // Controlla i log su Render per vedere cosa arriva
 
-        const clinicName = req.body.clinicName || req.body.nomeStudio || req.body.studio || '';
+        const clinicName = req.body.studioName || req.body.clinicName || req.body.nomeStudio || req.body.studio || '';
         const contactName = req.body.contactName || req.body.nomeReferente || req.body.referente || '';
-        const recipientEmail = req.body.clinicEmail || req.body.email || req.body.emailStudio || req.body.toEmail;
+        const recipientEmail = req.body.email || req.body.clinicEmail || req.body.emailStudio || req.body.toEmail;
         
-        // Estrazione pulita del nome del setter
+        // Cattura aggressiva del nome setter da qualsiasi proprietà possibile
         const rawSetter = req.body.setterName || req.body.setter || req.body.name || req.body.nome || '';
         const setterName = rawSetter.trim();
-
-        // Costruzione dinamica della firma per evitare doppi "Team Artsoftware2022"
-        const signatureHtml = setterName 
-            ? `<strong>${setterName}</strong><br>Team Artsoftware2022` 
-            : `<strong>Team Artsoftware2022</strong>`;
-
-        const senderDisplayName = setterName 
-            ? `Vocalis - ${setterName}` 
-            : `Vocalis - Artsoftware2022`;
 
         const apiKey = process.env.BREVO_API_KEY;
 
@@ -40,11 +31,15 @@ app.post('/api/send-lead-email', async (req, res) => {
             return res.status(400).json({ success: false, error: "Email del destinatario mancante." });
         }
 
-        console.log(`Invio email a ${recipientEmail} | Setter: ${setterName || 'Nessuno (Default Team)'}`);
+        // Se il setter ha scritto qualcosa, usiamo il suo nome. Altrimenti fallback pulito.
+        const displayName = setterName ? setterName : "Team Artsoftware2022";
+        const senderName = setterName ? `Vocalis - ${setterName}` : "Vocalis - Artsoftware2022";
+
+        console.log(`Invio email a ${recipientEmail} | Setter usato nella firma: "${displayName}"`);
 
         const payload = JSON.stringify({
             sender: {
-                name: senderDisplayName,
+                name: senderName,
                 email: "info@artsoftware2022.it"
             },
             to: [
@@ -62,7 +57,7 @@ app.post('/api/send-lead-email', async (req, res) => {
                     <p>Vorremmo offrirti <strong>una settimana di prova gratuita e senza impegno</strong> del sistema.</p>
                     <br>
                     <p>Un cordiale saluto,</p>
-                    <p>${signatureHtml}<br>Email: info@artsoftware2022.it</p>
+                    <p><strong>${displayName}</strong><br>Team Artsoftware2022<br>Email: info@artsoftware2022.it</p>
                 </div>
             `
         });
