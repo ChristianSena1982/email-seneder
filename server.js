@@ -6,24 +6,25 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve i file statici dalla cartella public
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/api/send-lead-email', async (req, res) => {
     const { clinicName, contactName, clinicEmail } = req.body;
 
-    // Configurazione SMTP per Aruba
+    console.log(`Tentativo di invio email a: ${clinicEmail} con utente: ${process.env.SMTP_USER}`);
+
     const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtps.aruba.it',
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: false, // true per 465, false per 587
+        port: Number(process.env.SMTP_PORT) || 465,
+        secure: true, // true per la 465
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS
         },
         tls: {
             rejectUnauthorized: false
-        }
+        },
+        connectionTimeout: 10000, // 10 secondi di timeout
     });
 
     const mailOptions = {
@@ -44,12 +45,12 @@ app.post('/api/send-lead-email', async (req, res) => {
     };
 
     try {
-        await transporter.sendMail(mailOptions);
+        let info = await transporter.sendMail(mailOptions);
+        console.log("Email inviata con successo:", info.response);
         res.json({ success: true, message: "Email inviata con successo!" });
     } catch (error) {
-        console.er
-        ror("Errore SMTP:", error);
-        res.status(500).json({ success: false, error: "Errore durante l'invio dell'email: " + error.message });
+        console.error("Errore SMTP dettagliato:", error);
+        res.status(500).json({ success: false, error: "Errore Aruba: " + error.message });
     }
 });
 
