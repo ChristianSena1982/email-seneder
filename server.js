@@ -63,12 +63,12 @@ app.post('/api/send-lead-email', async (req, res) => {
             htmlContent: `
                 <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
                     <h2 style="color: #0056b3;">Gentile ${contactName || 'Titolare'},</h2>
-                    <p>Ti scrivo da parte di <strong>Artsoftware2022</strong> per presentarti <strong>Vocalis</strong>, il nostro assistente virtuale basato su intelligenza artificiale progettato specificamente per gli studi dentistici.</p>
-                    <p>Vocalis gestisce automaticamente le chiamate telefoniche e i messaggi WhatsApp in modo naturale, fissando gli appuntamenti direttamente in agenda anche quando lo studio è chiuso.</p>
-                    <p>Vorremmo offrirti <strong>una settimana di prova gratuita e senza impegno</strong> del sistema.</p>
+                    <p>Sono {displayName} ci siamo sentiti al telefono poco fà. Le scrivo da parte di <strong>Artsoftware2022</strong> per presentarle in omaggio di una settimana <strong>Vocalis</strong>, il nostro assistente virtuale basato su intelligenza artificiale progettato specificamente per gli studi dentistici.</p>
+                    <p>Vocalis gestisce automaticamente le chiamate telefoniche con voce naturale quando lo studio è chiuso, fissa gli appuntamenti in base alla gravità e gestisce i messaggi WhatsApp in modo naturale, tutto aggiornato per le normative sulla privacy.  </p>
+                    <p>Vorremmo offrirti <strong>una settimana di prova gratuita e senza impegno</strong> del sistema e vogliamo farci conoscere anche per altri servizi. Vorremmo prendere un appuntamento di 5 minuti con lei e vorremmo inviarle il contratto da compilare, quando possiamo sentirci telefonicamente?</p>
                     <br>
                     <p>Un cordiale saluto,</p>
-                    <p><strong>${displayName}</strong><br>Team Artsoftware2022<br>Email: info@artsoftware2022.it</p>
+                    <p><strong>${displayName}</strong><br>Team Artsoftware2022<br>Email: info@artsoftware2022.it<br>www.artsoftware2022.it</p>
                     ${imagesHtml}
                 </div>
             `
