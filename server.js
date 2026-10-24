@@ -10,14 +10,24 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/api/send-lead-email', async (req, res) => {
     try {
-        console.log("Dati ricevuti dal form:", req.body); // Utile per vedere cosa arriva esattamente
+        console.log("Dati ricevuti dal form:", req.body);
 
         const clinicName = req.body.clinicName || req.body.nomeStudio || req.body.studio || '';
         const contactName = req.body.contactName || req.body.nomeReferente || req.body.referente || '';
         const recipientEmail = req.body.clinicEmail || req.body.email || req.body.emailStudio || req.body.toEmail;
         
-        // Cattura il nome del setter da qualsiasi campo possibile inviato dal form
-        const setterName = req.body.setterName || req.body.setter || req.body.name || req.body.nome || 'Team Artsoftware2022';
+        // Estrazione pulita del nome del setter
+        const rawSetter = req.body.setterName || req.body.setter || req.body.name || req.body.nome || '';
+        const setterName = rawSetter.trim();
+
+        // Costruzione dinamica della firma per evitare doppi "Team Artsoftware2022"
+        const signatureHtml = setterName 
+            ? `<strong>${setterName}</strong><br>Team Artsoftware2022` 
+            : `<strong>Team Artsoftware2022</strong>`;
+
+        const senderDisplayName = setterName 
+            ? `Vocalis - ${setterName}` 
+            : `Vocalis - Artsoftware2022`;
 
         const apiKey = process.env.BREVO_API_KEY;
 
@@ -30,11 +40,11 @@ app.post('/api/send-lead-email', async (req, res) => {
             return res.status(400).json({ success: false, error: "Email del destinatario mancante." });
         }
 
-        console.log(`Invio email a ${recipientEmail} | Setter rilevato: ${setterName}`);
+        console.log(`Invio email a ${recipientEmail} | Setter: ${setterName || 'Nessuno (Default Team)'}`);
 
         const payload = JSON.stringify({
             sender: {
-                name: `Vocalis - ${setterName}`,
+                name: senderDisplayName,
                 email: "info@artsoftware2022.it"
             },
             to: [
@@ -52,7 +62,7 @@ app.post('/api/send-lead-email', async (req, res) => {
                     <p>Vorremmo offrirti <strong>una settimana di prova gratuita e senza impegno</strong> del sistema.</p>
                     <br>
                     <p>Un cordiale saluto,</p>
-                    <p><strong>${setterName}</strong><br>Team Artsoftware2022<br>Email: info@artsoftware2022.it</p>
+                    <p>${signatureHtml}<br>Email: info@artsoftware2022.it</p>
                 </div>
             `
         });
