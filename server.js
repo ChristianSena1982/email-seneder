@@ -53,7 +53,7 @@ app.post('/api/send-lead-email', async (req, res) => {
                 <p>Vorremmo offrirti <strong>una settimana di prova gratuita e senza impegno</strong> del sistema.</p>
                 <br>
                 <p>Un cordiale saluto,</p>
-                <p><strong>Team Artsoftware2022</strong><br>Email: info@artsoftware2022.it</p>
+                <p><strong>${setterName}</strong><strong>Team Artsoftware2022</strong><br>Email: info@artsoftware2022.it</p>
             </div>
         `
     };
