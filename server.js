@@ -6,31 +6,26 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve i file statici dalla cartella public
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/api/send-lead-email', async (req, res) => {
     const { clinicName, contactName, clinicEmail } = req.body;
 
-    console.log(`Tentativo di invio email a: ${clinicEmail} con utente: ${process.env.SMTP_USER}`);
+    console.log(`Tentativo di invio email a: ${clinicEmail} tramite Brevo`);
 
-    // Configurazione SMTP per Aruba (Porta 587 con TLS)
+    // Configurazione SMTP pulita per Brevo
     const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.aruba.it',
+        host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
         port: Number(process.env.SMTP_PORT) || 587,
-        secure: false, // false per la porta 587
+        secure: false,
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS
-        },
-        tls: {
-            rejectUnauthorized: false
-        },
-        connectionTimeout: 15000, // 15 secondi di timeout
+        }
     });
 
     const mailOptions = {
-        from: `"Vocalis Artsoftware" <${process.env.SMTP_USER}>`,
+        from: `"Vocalis Artsoftware" <info@artsoftware2022.it>`,
         to: clinicEmail,
         subject: `Presentazione Vocalis per lo Studio ${clinicName}`,
         html: `
@@ -41,18 +36,18 @@ app.post('/api/send-lead-email', async (req, res) => {
                 <p>Vorremmo offrirti <strong>una settimana di prova gratuita e senza impegno</strong> del sistema.</p>
                 <br>
                 <p>Un cordiale saluto,</p>
-                <p><strong>Team Artsoftware2022</strong><br>Email: ${process.env.SMTP_USER}</p>
+                <p><strong>Team Artsoftware2022</strong><br>Email: info@artsoftware2022.it</p>
             </div>
         `
     };
 
     try {
         let info = await transporter.sendMail(mailOptions);
-        console.log("Email inviata con successo:", info.response);
+        console.log("Email inviata con successo tramite Brevo:", info.response);
         res.json({ success: true, message: "Email inviata con successo!" });
     } catch (error) {
-        console.error("Errore SMTP dettagliato:", error);
-        res.status(500).json({ success: false, error: "Errore Aruba: " + error.message });
+        console.error("Errore SMTP Brevo:", error);
+        res.status(500).json({ success: false, error: "Errore Brevo: " + error.message });
     }
 });
 
