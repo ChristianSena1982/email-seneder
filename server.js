@@ -8,7 +8,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.post('/api/send-lead-email', async (req, res) => {
+app.post('/api/send-lead-email', async (req, res) => { 
     try {
         console.log("BODY RICEVUTO DAL FORM:", req.body);
 
