@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invio Info Studio Dentistico - Vocalis</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f7f6; margin: 0; padding: 40px 20px; display: flex; justify-content: center; }
+        .card { background: #ffffff; padding: 30px; border-radius: 10px; max-width: 480px; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        h2 { margin-top: 0; color: #2c3e50; font-size: 22px; text-align: center; }
+        p.subtitle { text-align: center; color: #7f8c8d; font-size: 14px; margin-bottom: 25px; }
+        label { display: block; margin-top: 15px; font-weight: 600; color: #34495e; font-size: 14px; }
+        input { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 15px; outline: none; transition: border 0.2s; }
+        input:focus { border-color: #3498db; }
+        button { background-color: #27ae60; color: white; border: none; padding: 14px; margin-top: 25px; width: 100%; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background-color: #219653; }
+        button:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+        #status { margin-top: 18px; font-weight: bold; text-align: center; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Invio Presentazione Vocalis</h2>
+    <p class="subtitle">Inserisci i dati dello studio per inviare l'email automatica</p>
+    
+    <form id="leadForm">
+        <label for="studioName">Nome Studio Dentistico</label>
+        <input type="text" id="studioName" name="studioName" required placeholder="es. Studio Dentistico Rossi">
+
+        <label for="contactName">Nome Referente / Titolare</label>
+        <input type="text" id="contactName" name="contactName" required placeholder="es. Dr. Mario Rossi">
+
+        <label for="email">Email dello Studio</label>
+        <input type="email" id="email" name="email" required placeholder="studio@email.it">
+
+        <button type="submit" id="btnSubmit">Invia Email Informativa</button>
+    </form>
+    
+    <div id="status"></div>
+</div>
+
+<script>
+    document.getElementById('leadForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const statusDiv = document.getElementById('status');
+        const btn = document.getElementById('btnSubmit');
+        
+        statusDiv.style.color = '#333';
+        statusDiv.textContent = 'Invio in corso...';
+        btn.disabled = true;
+
+        const payload = {
+            studioName: document.getElementById('studioName').value.trim(),
+            contactName: document.getElementById('contactName').value.trim(),
+            email: document.getElementById('email').value.trim()
+        };
+
+        try {
+            const response = await fetch('/api/send-lead-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            if (response.ok && result.success) {
+                statusDiv.style.color = '#27ae60';
+                statusDiv.textContent = ' Email inviata con successo allo studio!';
+                document.getElementById('leadForm').reset();
+            } else {
+                statusDiv.style.color = '#e74c3c';
+                statusDiv.textContent = ' Errore: ' + (result.error || 'Impossibile inviare');
+            }
+        } catch (err) {
+            statusDiv.style.color = '#e74c3c';
+            statusDiv.textContent = ' Errore di connessione al server.';
+        } finally {
+            btn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
