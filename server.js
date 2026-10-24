@@ -1,5 +1,4 @@
 const express = require('express');
-const nodemailer = require('nodemailer');
 const path = require('path');
 
 const app = express();
@@ -11,27 +10,31 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.post('/api/send-lead-email', async (req, res) => {
     const { clinicName, contactName, clinicEmail } = req.body;
 
-    console.log(`Tentativo di invio email a: ${clinicEmail} tramite Brevo`);
+    const apiKey = process.env.BREVO_API_KEY;
 
-    // Configurazione SMTP pulita per Brevo
-    const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: false,
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
-        }
-    });
+    if (!apiKey) {
+        console.error("Errore: BREVO_API_KEY non configurata nelle variabili d'ambiente.");
+        return res.status(500).json({ success: false, error: "Chiave BREVO_API_KEY non configurata su Render." });
+    }
 
-    const mailOptions = {
-        from: `"Vocalis Artsoftware" <info@artsoftware2022.it>`,
-        to: clinicEmail,
+    console.log(`Tentativo di invio email via API Brevo a: ${clinicEmail}`);
+
+    const payload = {
+        sender: {
+            name: "Vocalis Artsoftware",
+            email: "info@artsoftware2022.it"
+        },
+        to: [
+            {
+                email: clinicEmail,
+                name: clinicName || "Studio Dentistico"
+            }
+        ],
         subject: `Presentazione Vocalis per lo Studio ${clinicName}`,
-        html: `
+        htmlContent: `
             <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
                 <h2 style="color: #0056b3;">Gentile ${contactName || 'Titolare'},</h2>
-                <p>Ti scrivo da parte di <strong>Artsoftware2022</strong> per presentarle <strong>Vocalis</strong>, il nostro assistente virtuale basato su intelligenza artificiale progettato specificamente per gli studi dentistici.</p>
+                <p>Ti scrivo da parte di <strong>Artsoftware2022</strong> per presentarti <strong>Vocalis</strong>, il nostro assistente virtuale basato su intelligenza artificiale progettato specificamente per gli studi dentistici.</p>
                 <p>Vocalis gestisce automaticamente le chiamate telefoniche e i messaggi WhatsApp in modo naturale, fissando gli appuntamenti direttamente in agenda anche quando lo studio è chiuso.</p>
                 <p>Vorremmo offrirti <strong>una settimana di prova gratuita e senza impegno</strong> del sistema.</p>
                 <br>
@@ -42,12 +45,28 @@ app.post('/api/send-lead-email', async (req, res) => {
     };
 
     try {
-        let info = await transporter.sendMail(mailOptions);
-        console.log("Email inviata con successo tramite Brevo:", info.response);
-        res.json({ success: true, message: "Email inviata con successo!" });
+        const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: {
+                'accept': 'application/json',
+                'api-key': apiKey,
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            console.log("Email inviata con successo via API Brevo:", data);
+            return res.json({ success: true, message: "Email inviata con successo!" });
+        } else {
+            console.error("Errore restituito dalle API di Brevo:", data);
+            return res.status(500).json({ success: false, error: data.message || "Errore durante l'invio via API Brevo" });
+        }
     } catch (error) {
-        console.error("Errore SMTP Brevo:", error);
-        res.status(500).json({ success: false, error: "Errore Brevo: " + error.message });
+        console.error("Errore di connessione HTTP verso Brevo:", error);
+        return res.status(500).json({ success: false, error: "Errore di connessione: " + error.message });
     }
 });
 
