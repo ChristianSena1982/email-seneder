@@ -10,13 +10,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/api/send-lead-email', async (req, res) => {
     try {
-        console.log("BODY RICEVUTO DAL FORM:", req.body); // Controlla i log su Render per vedere cosa arriva
+        console.log("BODY RICEVUTO DAL FORM:", req.body);
 
         const clinicName = req.body.studioName || req.body.clinicName || req.body.nomeStudio || req.body.studio || '';
         const contactName = req.body.contactName || req.body.nomeReferente || req.body.referente || '';
         const recipientEmail = req.body.email || req.body.clinicEmail || req.body.emailStudio || req.body.toEmail;
         
-        // Cattura aggressiva del nome setter da qualsiasi proprietà possibile
         const rawSetter = req.body.setterName || req.body.setter || req.body.name || req.body.nome || '';
         const setterName = rawSetter.trim();
 
@@ -31,11 +30,24 @@ app.post('/api/send-lead-email', async (req, res) => {
             return res.status(400).json({ success: false, error: "Email del destinatario mancante." });
         }
 
-        // Se il setter ha scritto qualcosa, usiamo il suo nome. Altrimenti fallback pulito.
         const displayName = setterName ? setterName : "Team Artsoftware2022";
         const senderName = setterName ? `Vocalis - ${setterName}` : "Vocalis - Artsoftware2022";
 
-        console.log(`Invio email a ${recipientEmail} | Setter usato nella firma: "${displayName}"`);
+        console.log(`Invio email a ${recipientEmail} | Setter: "${displayName}"`);
+
+        // URL pubblici delle due immagini caricate nella cartella public/images/
+        const img1Url = "https://email-seneder.onrender.com/images/art1.jpg";
+        const img2Url = "https://email-seneder.onrender.com/images/art2.jpg";
+        
+        const imgStyle = "max-width: 100%; height: auto; display: block; margin: 15px auto; border-radius: 6px;";
+        
+        // Genera l'HTML per le immagini in modo dinamico
+        const imagesHtml = `
+            <div style="margin-top: 25px; text-align: center;">
+                <img src="${img1Url}" alt="Art 1" style="${imgStyle}" />
+                <img src="${img2Url}" alt="Art 2" style="${imgStyle}" />
+            </div>
+        `;
 
         const payload = JSON.stringify({
             sender: {
@@ -58,6 +70,7 @@ app.post('/api/send-lead-email', async (req, res) => {
                     <br>
                     <p>Un cordiale saluto,</p>
                     <p><strong>${displayName}</strong><br>Team Artsoftware2022<br>Email: info@artsoftware2022.it</p>
+                    ${imagesHtml}
                 </div>
             `
         });
