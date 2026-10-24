@@ -10,10 +10,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/api/send-lead-email', async (req, res) => {
     try {
+        console.log("Dati ricevuti dal form:", req.body); // Utile per vedere cosa arriva esattamente
+
         const clinicName = req.body.clinicName || req.body.nomeStudio || req.body.studio || '';
         const contactName = req.body.contactName || req.body.nomeReferente || req.body.referente || '';
         const recipientEmail = req.body.clinicEmail || req.body.email || req.body.emailStudio || req.body.toEmail;
-        const setterName = req.body.setterName || req.body.setter || 'Team Artsoftware2022';
+        
+        // Cattura il nome del setter da qualsiasi campo possibile inviato dal form
+        const setterName = req.body.setterName || req.body.setter || req.body.name || req.body.nome || 'Team Artsoftware2022';
 
         const apiKey = process.env.BREVO_API_KEY;
 
@@ -26,7 +30,7 @@ app.post('/api/send-lead-email', async (req, res) => {
             return res.status(400).json({ success: false, error: "Email del destinatario mancante." });
         }
 
-        console.log(`Invio a ${recipientEmail} tramite setter: ${setterName}`);
+        console.log(`Invio email a ${recipientEmail} | Setter rilevato: ${setterName}`);
 
         const payload = JSON.stringify({
             sender: {
