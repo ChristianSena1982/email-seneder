@@ -6,6 +6,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve i file statici dalla cartella public
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/api/send-lead-email', async (req, res) => {
@@ -13,10 +14,11 @@ app.post('/api/send-lead-email', async (req, res) => {
 
     console.log(`Tentativo di invio email a: ${clinicEmail} con utente: ${process.env.SMTP_USER}`);
 
+    // Configurazione SMTP per Aruba (Porta 587 con TLS)
     const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtps.aruba.it',
-        port: Number(process.env.SMTP_PORT) || 465,
-        secure: true, // true per la 465
+        host: process.env.SMTP_HOST || 'smtp.aruba.it',
+        port: Number(process.env.SMTP_PORT) || 587,
+        secure: false, // false per la porta 587
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS
@@ -24,7 +26,7 @@ app.post('/api/send-lead-email', async (req, res) => {
         tls: {
             rejectUnauthorized: false
         },
-        connectionTimeout: 10000, // 10 secondi di timeout
+        connectionTimeout: 15000, // 15 secondi di timeout
     });
 
     const mailOptions = {
